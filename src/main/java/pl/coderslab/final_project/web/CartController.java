@@ -49,8 +49,7 @@ public class CartController {
         if (session.getAttribute("cart") == null &&
                 session.getAttribute("loggedUser") == null) {
             cart = new Cart();
-            cart = cartRepository.save(cart);
-            model.addAttribute("cart", cart);
+
         } else if (session.getAttribute("cart") == null &&
                 session.getAttribute("loggedUser") != null) {
             User user = (User) session.getAttribute("loggedUser");
@@ -58,49 +57,56 @@ public class CartController {
                 cart = new Cart();
                 cart = cartRepository.save(cart);
                 user.setCart(cart);
+                userRepository.save(user);
+                model.addAttribute("loggedUser", user);
             } else {
                 cart = user.getCart();
             }
-            model.addAttribute("cart", cart);
-            model.addAttribute("loggedUser", user);
+
         } else if (session.getAttribute("cart") != null &&
                 session.getAttribute("loggedUser") == null) {
             cart = (Cart) session.getAttribute("cart");
-            if (cart == null) {
-                cart = new Cart();
-            }
-            cart = cartRepository.save(cart);
-            model.addAttribute("cart", cart);
+
         } else if (session.getAttribute("cart") != null &&
                 session.getAttribute("loggedUser") != null) {
             User user = (User) session.getAttribute("loggedUser");
             cart = (Cart) session.getAttribute("cart");
-            if (cart == null) {
-                if (user.getCart() == null) {
-                    cart = new Cart();
-                } else {
-                    cart = user.getCart();
-                }
-            } else {
-                if (user.getCart() == null) {
-                    user.setCart(cart);
-                } else {
-                    cartItemRepository.updateAllCartByCart(cart, user.getCart());
-                }
+
+            if (user.getCart() != cart) {
+//                Cart oldCart = user.getCart();
+//                cartItemRepository.updateAllCartItemsOldCartToNewCart(cart, oldCart);
+//
+//                user.setCart(cart);
+//                userRepository.save(user);
+//                cartRepository.delete(oldCart);
+                Cart newCart = user.getCart();
+                cartItemRepository.updateAllCartItemsOldCartToNewCart(newCart, cart);
+
+                cartRepository.delete(cart);
+                cart = newCart;
             }
-            cart = cartRepository.save(cart);
-            user = userRepository.save(user);
-            model.addAttribute("cart", cart);
+
+            else if (user.getCart() == null) {
+                user.setCart(cart);
+                user = userRepository.save(user);
+
+            } else {
+                Cart newCart = user.getCart();
+                cartItemRepository.updateAllCartItemsOldCartToNewCart(newCart, cart);
+
+                cartRepository.delete(cart);
+                cart = newCart;
+            }
             model.addAttribute("loggedUser", user);
         }
 
         cart.setItemsQuantity(cart.getItemsQuantity() + cartItem.getQuantity());
-        CartItem productInCart = cartItemRepository.findFirstByProductAndCart(product, cart).orElse(null);
+        cartRepository.save(cart);
+        CartItem existingCartItem = cartItemRepository.findFirstByProductAndCart(product, cart).orElse(null);
         boolean isProductInCart = cartItemRepository.findFirstByProductAndCart(product, cart).isPresent();
 
-        if (productInCart != null) {
-            productInCart.setQuantity(productInCart.getQuantity() + cartItem.getQuantity());
-            cartItem = productInCart;
+        if (existingCartItem != null) {
+            cartItem.setQuantity(existingCartItem.getQuantity() + cartItem.getQuantity());
         }
 
         cartItem.setCart(cart);
@@ -108,6 +114,7 @@ public class CartController {
 
         cartRepository.save(cart);
         cartItemRepository.save(cartItem);
+        model.addAttribute("cart", cart);
 
         String message = "";
 
@@ -145,10 +152,17 @@ public class CartController {
         return "cart/cartDetails";
     }
 
-    @PostMapping("/deleteFromCart")
-    public String deleteFromCart(@RequestParam("id") Long id) {
+    @RequestMapping("/deleteFromCart")
+//    @ResponseBody
+    public void deleteFromCart(@RequestParam("id") Long id, Model model) {
+        CartItem cartItem = cartItemRepository.findById(id).orElseThrow(IllegalArgumentException::new);
+        Cart cart = cartRepository.findById(cartItem.getCart().getId())
+                .orElseThrow(IllegalArgumentException::new);
+        cart.setItemsQuantity(cart.getItemsQuantity() - cartItem.getQuantity());
+        cartRepository.save(cart);
+        model.addAttribute("cart", cart);
         cartItemRepository.deleteById(id);
-        return "redirect:cartDetails";
+//        return "redirect:cartDetails";
     }
 
 }

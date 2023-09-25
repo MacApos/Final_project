@@ -12,6 +12,7 @@ public class LogoutController {
     @RequestMapping("/logout")
     public String logout(HttpSession session, Model model) {
         session.removeAttribute("loggedUser");
+        session.removeAttribute("cart");
         return "redirect:";
     }
 }

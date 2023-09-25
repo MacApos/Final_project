@@ -272,7 +272,7 @@
         .form-group {
             padding-bottom: 0.5rem;
             padding-top: 0.5rem;
-            margin-bottom:0.5rem;
+            margin-bottom: 0.5rem;
             margin-top: 0.5rem;
         }
 
@@ -419,24 +419,35 @@
                 <li class="nav-item"><a href="/product/lavender" class="nav-link link-body-emphasis px-2">Wyroby
                     lawendowe</a></li>
             </ul>
+
+            <c:choose>
+                <c:when test="${sessionScope.cart.itemsQuantity > 0}">
+                    <c:set var="itemsQuantity" value="${sessionScope.cart.itemsQuantity}"/>
+                </c:when>
+                <c:otherwise>
+                    <c:set var="itemsQuantity" value="${null}"/>
+                </c:otherwise>
+            </c:choose>
+
             <ul class="nav" id="logout">
                 <li class="nav-item"><a href="/user/login" class="nav-link link-body-emphasis px-2">Login</a></li>
                 <li class="nav-item"><a href="/user/signUp" class="nav-link link-body-emphasis px-2">Sign up</a></li>
-                <li class="nav-item"><div><a href="/cart/cartDetails" class="nav-link link-body-emphasis px-2">
-                    \_${sessionScope.cart.itemsQuantity}_/></a>
-            </div></li>
+                <li class="nav-item">
+                    <a href="/cart/cartDetails" class="nav-link link-body-emphasis px-2">\_${itemsQuantity}_/></a>
+                </li>
             </ul>
             <ul class="nav" id="login">
-                <li class="nav-item dropdown-nav no-arrow"><a class="nav-link link-body-emphasis px-2"
-                                                              id="userName">${sessionScope.loggedUser.firstName}</a>
+                <li class="nav-item dropdown-nav no-arrow">
+                    <a class="nav-link link-body-emphasis px-2" id="userName">${sessionScope.loggedUser.firstName}</a>
                     <div class="dropdown_menu--animated">
                         <a href="/user/userDetails">Profil</a>
                         <a href="/cart/cartDetails">Koszyk</a>
                         <a href="/logout">Wyloguj</a>
                     </div>
                 </li>
-
-                <li class="nav-item"><a href="/cart/cartDetails" class="nav-link link-body-emphasis px-2">\_/</a></li>
+                <li class="nav-item">
+                    <a href="/cart/cartDetails" class="nav-link link-body-emphasis px-2">\_${itemsQuantity}_/></a>
+                </li>
             </ul>
         </div>
         <div id="session"><c:out value="${sessionScope.loggedUser}"/></div>

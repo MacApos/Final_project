@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
         login.removeAttribute("hidden");
         console.log(session.innerText);
         console.log('logged user');
-
     }
 
 })

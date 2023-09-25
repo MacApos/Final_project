@@ -83,7 +83,7 @@ public class CartControllerTest {
                 if (user.getCart() == null) {
                     user.setCart(cart);
                 } else {
-                    cartItemRepository.updateAllCartByCart(cart, user.getCart());
+                    cartItemRepository.updateAllCartItemsOldCartToNewCart(cart, user.getCart());
                 }
             }
             cart = cartRepository.save(cart);
